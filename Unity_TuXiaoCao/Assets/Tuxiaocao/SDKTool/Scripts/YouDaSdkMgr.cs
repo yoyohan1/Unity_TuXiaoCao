@@ -305,6 +305,8 @@ namespace yoyohan.YouDaSdkTool
 #if UNITY_IOS
         [System.Runtime.InteropServices.DllImport("__Internal")]
         public static extern void openTuXiaoCao_iOS(string url, string phone, string nickname, string avatar, string openid);
+        [System.Runtime.InteropServices.DllImport("__Internal")]
+        public static extern void openWebView_iOS(string url);
 #endif
 
         public void openTuXiaoCao(string url, string phone, string nickname, string avatar, string openid)
@@ -344,6 +346,23 @@ namespace yoyohan.YouDaSdkTool
             }
         }
 
+        public void openWebView(string url)
+        {
+            if (Application.platform == RuntimePlatform.Android)
+            {
+                SendMessageToAndroidByPackage("com.yoyohan.tuxiaocao.MainActivity", "openWebView", false, url);
+            }
+            else if (Application.platform == RuntimePlatform.IPhonePlayer)
+            {
+#if UNITY_IOS
+                openWebView_iOS(url);
+#endif
+            }
+            else
+            {
+                this.OpenUrl(url);
+            }
+        }
         #endregion
 
 

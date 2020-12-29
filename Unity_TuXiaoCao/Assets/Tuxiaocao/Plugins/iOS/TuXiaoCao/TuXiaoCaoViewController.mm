@@ -103,22 +103,6 @@
     //创建WKWebView对象，设置大小为屏幕大小
     self.webview = [[WKWebView alloc] initWithFrame:CGRectMake(0, viewHeight, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height-viewHeight)];
     
-    // 获得 webview url，请注意url单词是product而不是products，products是旧版本的参数，用错地址将不能成功提交
-    NSString *appUrl = [self._url stringByAppendingString:@"?d-wx-push=1"];
-    
-    // 设置请求体
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:appUrl]];
-    
-    // 请求方式为POST请求
-    [request setHTTPMethod:@"POST"];
-    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    
-    NSString *customInfo=[NSString stringWithFormat:@"账号:%@ 机型:%@ 手机版本:iOS%@", self._phone,[iOSUtil getiPhoneType], [[UIDevice currentDevice] systemVersion]];
-    NSString *body = [NSString stringWithFormat:@"nickname=%@&avatar=%@&openid=%@&customInfo=%@", self._nickname, self._avatar, self.open_id,customInfo];
-    
-    NSLog( @"%@", [NSString stringWithFormat:@"打开兔小巢页面 body:%@",body]);
-    [request setHTTPBody:[body dataUsingEncoding:NSUTF8StringEncoding]];
-    
     self.webview.navigationDelegate = self;
     
     //当前网页加载的进度，所以监听这个属性
@@ -127,9 +111,31 @@
     // 将WebView对象添加到当前页面当中
     [self.view addSubview:self.webview];
     
-    // WebView对象加载请求并且现实内容
-    [self.webview loadRequest:request];
+    
+    if ([self._type isEqualToString:@"tuxiaocao"]){
+         // 获得 webview url，请注意url单词是product而不是products，products是旧版本的参数，用错地址将不能成功提交
+        NSString *appUrl = [self._url stringByAppendingString:@"?d-wx-push=1"];
+        
+        // 设置请求体
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:appUrl]];
+        
+        // 请求方式为POST请求
+        [request setHTTPMethod:@"POST"];
+        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        
+        NSString *customInfo=[NSString stringWithFormat:@"账号:%@ 机型:%@ 手机版本:iOS%@", self._phone,[iOSUtil getiPhoneType], [[UIDevice currentDevice] systemVersion]];
+        NSString *body = [NSString stringWithFormat:@"nickname=%@&avatar=%@&openid=%@&customInfo=%@", self._nickname, self._avatar, self.open_id,customInfo];
+        
+        NSLog( @"%@", [NSString stringWithFormat:@"打开兔小巢页面 body:%@",body]);
+        [request setHTTPBody:[body dataUsingEncoding:NSUTF8StringEncoding]];
 
+        // WebView对象加载请求并且现实内容
+        [self.webview loadRequest:request];
+    }
+    else if ([self._type isEqualToString:@"url"]){
+        [self.webview loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self._url]]];
+    }
+   
 }
 
 
@@ -243,11 +249,26 @@ extern "C" {
         NSString *_avatar = [NSString stringWithUTF8String:avatar];
 
         TuXiaoCaoViewController *tuXiaoCaoViewController=[[TuXiaoCaoViewController alloc] init];
+        tuXiaoCaoViewController._type = @"tuxiaocao";
         tuXiaoCaoViewController._url = _url;
         tuXiaoCaoViewController._phone = _phone;
         tuXiaoCaoViewController.open_id = open_id;// 用户ID
         tuXiaoCaoViewController._nickname = _nickname;// 昵称
         tuXiaoCaoViewController._avatar = _avatar;// 头像url地址
+
+        //防止弹出界面不能占满屏幕
+        tuXiaoCaoViewController.modalPresentationStyle = UIModalPresentationFullScreen;
+        [UnityGetGLViewController()  presentViewController:tuXiaoCaoViewController animated:false completion:nil];
+
+    }
+
+    void openWebView_iOS(const char *url) {
+
+        NSString *_url = [NSString stringWithUTF8String:url];
+
+        TuXiaoCaoViewController *tuXiaoCaoViewController=[[TuXiaoCaoViewController alloc] init];
+        tuXiaoCaoViewController._type = @"url";
+        tuXiaoCaoViewController._url = _url;
 
         //防止弹出界面不能占满屏幕
         tuXiaoCaoViewController.modalPresentationStyle = UIModalPresentationFullScreen;

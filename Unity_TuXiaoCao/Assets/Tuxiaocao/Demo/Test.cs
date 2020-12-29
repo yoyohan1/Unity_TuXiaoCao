@@ -39,4 +39,11 @@ public class Test : MonoBehaviour
 
         yoyohan.YouDaSdkTool.YouDaSdkMgr.instance.openTuXiaoCao(url, phone, nickname, avatar, openid);
     }
+
+    public void OpenWebView()
+    {
+        //示例代码
+        string url = "https://www.baidu.com";
+        yoyohan.YouDaSdkTool.YouDaSdkMgr.instance.openWebView(url);
+    }
 }
