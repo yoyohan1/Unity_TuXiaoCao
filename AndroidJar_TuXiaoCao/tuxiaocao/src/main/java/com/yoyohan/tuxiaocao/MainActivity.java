@@ -15,11 +15,25 @@ public class MainActivity {
         Activity activity = UnityPlayer.currentActivity;
 
         Intent intent = new Intent(activity, TuXiaoCaoActivity.class);
+        intent.putExtra("type", "tuxiaocao");
         intent.putExtra("url", url);
         intent.putExtra("phone", phone);
         intent.putExtra("nickname", nickname);
         intent.putExtra("avatar", avatar);
         intent.putExtra("openid", openid);
+        activity.startActivity(intent);
+    }
+
+
+    /*打开网址
+     * openWebView("https://yl-mobile.niceloo.com/agreement/privacy_yl_a.html");
+     * */
+    public void openWebView(final String url) {
+        Activity activity = UnityPlayer.currentActivity;
+
+        Intent intent = new Intent(activity, TuXiaoCaoActivity.class);
+        intent.putExtra("type", "url");
+        intent.putExtra("url", url);
         activity.startActivity(intent);
     }
 }

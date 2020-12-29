@@ -34,11 +34,12 @@ public class TuXiaoCaoActivity extends Activity {
         ColorDrawable drawable = new ColorDrawable(color);
         actionBar.setBackgroundDrawable(drawable);
 
-        String url = this.getIntent().getStringExtra("url") + "?d-wx-push=1";
-        String phone = this.getIntent().getStringExtra("phone");
-        String nickname = this.getIntent().getStringExtra("nickname");
-        String avatar = this.getIntent().getStringExtra("avatar");
-        String openid = this.getIntent().getStringExtra("openid");
+        String type = this.getIntent().getStringExtra("type");
+        String url = this.getIntent().getStringExtra("url");
+
+        if (type.equals("tuxiaocao")) {
+            url = url + "?d-wx-push=1";
+        }
 
         setContentView(R.layout.activity_tuxiaocao);
         webView = (WebView) findViewById(R.id.tuxiaocao);
@@ -107,13 +108,24 @@ public class TuXiaoCaoActivity extends Activity {
 //            }
         });
 
+        //兔小巢页面
+        if (type.equals("tuxiaocao")) {
+            String phone = this.getIntent().getStringExtra("phone");
+            String nickname = this.getIntent().getStringExtra("nickname");
+            String avatar = this.getIntent().getStringExtra("avatar");
+            String openid = this.getIntent().getStringExtra("openid");
+            String jixing = android.os.Build.BRAND + "  " + android.os.Build.MODEL;
+            String customInfo = "账号:" + phone + " 机型:" + jixing + " 手机版本:Android" + android.os.Build.VERSION.RELEASE;
+            String postData = "nickname=" + nickname + "&avatar=" + avatar + "&openid=" + openid + "&customInfo=" + customInfo;
 
-        String jixing = android.os.Build.BRAND + "  " + android.os.Build.MODEL;
-        String customInfo = "账号:" + phone + " 机型:" + jixing + " 手机版本:Android" + android.os.Build.VERSION.RELEASE;
-        String postData = "nickname=" + nickname + "&avatar=" + avatar + "&openid=" + openid + "&customInfo=" + customInfo;
-
-        Log.i("Unity", "打开兔小巢页面 postData:" + postData);
-        webView.postUrl(url, postData.getBytes());
+            Log.i("Unity", "打开兔小巢页面 postData:" + postData);
+            webView.postUrl(url, postData.getBytes());
+        } else if (type.equals("url")) {
+            //普通页面
+            Log.i("Unity", "打开页面 url:" + url);
+            webView.loadUrl(url);
+        }
+        
     }
 
 
