@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">兔小巢demo</string>
+    <string name="title_activity_main">兔小巢demo</string>
+    <string name="game_view_content_description">Game view</string>
+</resources>
