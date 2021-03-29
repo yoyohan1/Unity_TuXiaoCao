@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Tuxiaocao/Demo/SampleScene.unity
+    path: Assets/TuXiaoCao/Demo/SampleScene.unity
     guid: e848d6db1adfe2d4ea10330f0191b03e
   m_configObjects: {}

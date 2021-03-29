@@ -19,14 +19,47 @@
     return NO;
 }
 
+Boolean canAutorotate=YES;
 //是否旋转屏幕
 - (BOOL)shouldAutorotate{
-    return false;
+    return canAutorotate;
 }
 
 //初始旋转
 -(UIInterfaceOrientation)preferredInterfaceOrientationForPresentation{
-    return UIInterfaceOrientationPortrait;
+    Boolean appIsLandscape=NO;
+    NSArray *arr= [[NSBundle mainBundle]objectForInfoDictionaryKey:@"UISupportedInterfaceOrientations"];
+    for (int i=0; i<arr.count; i++) {
+        if ([arr[i] containsString:@"Landscape"]) {
+            appIsLandscape=YES;
+        }
+        else{
+            appIsLandscape=NO;
+        }
+        NSLog(@"遍历info.plist的UISupportedInterfaceOrientations[0]:%@ 得出appIsLandscape：%@",arr[i],appIsLandscape?@"YES":@"NO");
+        break;
+    }
+    
+    if (self.orientationID==1) {
+        canAutorotate=appIsLandscape==NO;
+        return UIInterfaceOrientationPortrait;
+    }
+    else if(self.orientationID==2){
+        canAutorotate=appIsLandscape==NO;
+        return UIInterfaceOrientationPortraitUpsideDown;
+    }
+    else if(self.orientationID==3){
+        canAutorotate=appIsLandscape==YES;
+        return UIInterfaceOrientationLandscapeRight;
+    }
+    else if(self.orientationID==4){
+        canAutorotate=appIsLandscape==YES;
+        return UIInterfaceOrientationLandscapeLeft;
+    }
+    else{
+        canAutorotate=appIsLandscape==NO;
+        return UIInterfaceOrientationPortrait;
+    }
 }
 
 - (void)viewDidLoad {
@@ -255,21 +288,23 @@ extern "C" {
         tuXiaoCaoViewController.open_id = open_id;// 用户ID
         tuXiaoCaoViewController._nickname = _nickname;// 昵称
         tuXiaoCaoViewController._avatar = _avatar;// 头像url地址
-
+        tuXiaoCaoViewController.orientationID=1;//屏幕方向
+        
         //防止弹出界面不能占满屏幕
         tuXiaoCaoViewController.modalPresentationStyle = UIModalPresentationFullScreen;
         [UnityGetGLViewController()  presentViewController:tuXiaoCaoViewController animated:false completion:nil];
 
     }
 
-    void openWebView_iOS(const char *url) {
-
+    void openWebView_iOS(const char *url,int orientationID) {
+        NSLog(@"iOS端开始openWebView:%@ orientationID:%d",[NSString stringWithUTF8String:url],orientationID);
         NSString *_url = [NSString stringWithUTF8String:url];
 
         TuXiaoCaoViewController *tuXiaoCaoViewController=[[TuXiaoCaoViewController alloc] init];
         tuXiaoCaoViewController._type = @"url";
         tuXiaoCaoViewController._url = _url;
-
+        tuXiaoCaoViewController.orientationID = orientationID;
+        
         //防止弹出界面不能占满屏幕
         tuXiaoCaoViewController.modalPresentationStyle = UIModalPresentationFullScreen;
         [UnityGetGLViewController()  presentViewController:tuXiaoCaoViewController animated:false completion:nil];
