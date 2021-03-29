@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "iOSUtil.h"
 #import <sys/utsname.h>
+#import <AVFoundation/AVFoundation.h>
  
 @implementation iOSUtil
  
