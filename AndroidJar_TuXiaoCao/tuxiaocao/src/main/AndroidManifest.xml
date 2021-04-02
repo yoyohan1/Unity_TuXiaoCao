@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.yoyohan.tuxiaocao" >
-    <application android:networkSecurityConfig="@xml/network_security_config">
+    <application>
         <activity
             android:name="com.yoyohan.tuxiaocao.TuXiaoCaoActivityP"
             android:screenOrientation="sensorPortrait"
