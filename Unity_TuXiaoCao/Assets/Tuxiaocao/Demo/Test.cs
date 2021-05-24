@@ -1,11 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace yoyohan.TuXiaoCaoDemo
 {
     public class Test : MonoBehaviour
     {
+        public InputField inputField;
+
         public void OpenTuXiaoCao()
         {
             //示例代码
@@ -36,6 +39,11 @@ namespace yoyohan.TuXiaoCaoDemo
             //示例代码
             string url = "https://gitee.com/";
             YouDaSdkTool.YouDaSdkMgr.instance.openWebView(url, orientationID);
+        }
+
+        public void OpenZhiDing()
+        {
+            YouDaSdkTool.YouDaSdkMgr.instance.openWebView(inputField.text, 1);
         }
 
     }

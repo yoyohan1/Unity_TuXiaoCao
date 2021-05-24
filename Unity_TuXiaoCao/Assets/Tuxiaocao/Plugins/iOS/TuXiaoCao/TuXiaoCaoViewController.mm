@@ -209,6 +209,23 @@ Boolean canAutorotate=YES;
             [[UIApplication sharedApplication] openURL:webView.URL];
         }
     }
+    //拦截加载新页面
+    else if (navigationAction.targetFrame == nil) {
+        [webView loadRequest:navigationAction.request];
+    }
+    //拦截打开AppStore
+    else if ([[navigationAction.request.URL host] isEqualToString:@"itunes.apple.com"] &&
+        [[UIApplication sharedApplication] openURL:navigationAction.request.URL])
+    {
+        actionPolicy = WKNavigationActionPolicyCancel;
+    }
+    // else if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
+    //     if ([[UIApplication sharedApplication] canOpenURL:navigationAction.request.URL]) {
+    //         [[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:nil];
+    //     }
+    //     decisionHandler(WKNavigationActionPolicyCancel);
+    //     return;
+    // } 
     
     //这句是必须加上的，不然会异常
     decisionHandler(actionPolicy);
