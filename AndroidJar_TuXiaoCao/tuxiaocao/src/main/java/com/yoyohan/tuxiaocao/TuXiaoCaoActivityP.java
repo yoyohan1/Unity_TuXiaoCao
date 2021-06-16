@@ -7,15 +7,21 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+
+import java.io.File;
 
 
 public class TuXiaoCaoActivityP extends Activity {
@@ -23,6 +29,9 @@ public class TuXiaoCaoActivityP extends Activity {
     private WebView webView;
     private ProgressBar pg1;
     //private ProgressDialog dialog;
+    private final static int FILECHOOSER_RESULTCODE = 10000;
+    public ValueCallback<Uri> mUploadMessage;
+    public ValueCallback<Uri[]> mUploadMessageForAndroid5;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -107,6 +116,70 @@ public class TuXiaoCaoActivityP extends Activity {
 //                    dialog=null;
 //                }
 //            }
+
+            // For Android 3.0+
+            public void openFileChooser(ValueCallback<Uri> uploadMsg) {
+                Log.i("UPFILE", "in openFile Uri Callback");
+                if (mUploadMessage != null) {
+                    mUploadMessage.onReceiveValue(null);
+                }
+                mUploadMessage = uploadMsg;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                i.setType("*/*");
+                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+            }
+
+            // For Android 3.0+
+            public void openFileChooser(ValueCallback uploadMsg, String acceptType) {
+                Log.i("UPFILE", "in openFile Uri Callback has accept Type" + acceptType);
+                if (mUploadMessage != null) {
+                    mUploadMessage.onReceiveValue(null);
+                }
+                mUploadMessage = uploadMsg;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                String type = TextUtils.isEmpty(acceptType) ? "*/*" : acceptType;
+                i.setType(type);
+                startActivityForResult(Intent.createChooser(i, "File Chooser"),
+                        FILECHOOSER_RESULTCODE);
+            }
+
+            // For Android 4.1
+            public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
+                Log.i("UPFILE", "in openFile Uri Callback has accept Type" + acceptType + "has capture" + capture);
+                if (mUploadMessage != null) {
+                    mUploadMessage.onReceiveValue(null);
+                }
+                mUploadMessage = uploadMsg;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                String type = TextUtils.isEmpty(acceptType) ? "*/*" : acceptType;
+                i.setType(type);
+                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+            }
+
+            //Android 5.0+
+            @Override
+            @SuppressLint("NewApi")
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (mUploadMessageForAndroid5 != null) {
+                    mUploadMessageForAndroid5.onReceiveValue(null);
+                }
+                Log.i("UPFILE", "file chooser params：" + fileChooserParams.toString());
+                mUploadMessageForAndroid5 = filePathCallback;
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                if (fileChooserParams != null && fileChooserParams.getAcceptTypes() != null
+                        && fileChooserParams.getAcceptTypes().length > 0) {
+                    i.setType(fileChooserParams.getAcceptTypes()[0]);
+                } else {
+                    i.setType("*/*");
+                }
+                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+                return true;
+            }
+
         });
 
         //兔小巢页面
@@ -160,4 +233,33 @@ public class TuXiaoCaoActivityP extends Activity {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FILECHOOSER_RESULTCODE) {
+            if (null == mUploadMessage) return;
+            Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
+            if (result == null) {
+                mUploadMessage.onReceiveValue(null);
+                mUploadMessage = null;
+                return;
+            }
+            Log.i("UPFILE", "onActivityResult" + result.toString());
+            String path = TuXiaoCaoFileUtils.getPath(this, result);
+            if (TextUtils.isEmpty(path)) {
+                mUploadMessage.onReceiveValue(null);
+                mUploadMessage = null;
+                return;
+            }
+            Uri uri = Uri.fromFile(new File(path));
+            Log.i("UPFILE", "onActivityResult after parser uri:" + uri.toString());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mUploadMessageForAndroid5.onReceiveValue(new Uri[]{uri});
+            } else {
+                mUploadMessage.onReceiveValue(uri);
+            }
+            mUploadMessage = null;
+            mUploadMessageForAndroid5 = null;
+        }
+    }
 }
