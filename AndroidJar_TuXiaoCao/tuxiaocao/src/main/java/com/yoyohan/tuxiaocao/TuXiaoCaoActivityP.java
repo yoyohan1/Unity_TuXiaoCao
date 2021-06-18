@@ -1,8 +1,10 @@
 package com.yoyohan.tuxiaocao;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -29,9 +31,9 @@ public class TuXiaoCaoActivityP extends Activity {
     private WebView webView;
     private ProgressBar pg1;
     //private ProgressDialog dialog;
-    private final static int FILECHOOSER_RESULTCODE = 10000;
-    public ValueCallback<Uri> mUploadMessage;
-    public ValueCallback<Uri[]> mUploadMessageForAndroid5;
+    private final static int FILE_CHOOSER_RESULT_CODE = 10000;
+    public ValueCallback<Uri> uploadMessage;
+    public ValueCallback<Uri[]> uploadMessageAboveL;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -117,66 +119,24 @@ public class TuXiaoCaoActivityP extends Activity {
 //                }
 //            }
 
-            // For Android 3.0+
-            public void openFileChooser(ValueCallback<Uri> uploadMsg) {
-                Log.i("UPFILE", "in openFile Uri Callback");
-                if (mUploadMessage != null) {
-                    mUploadMessage.onReceiveValue(null);
-                }
-                mUploadMessage = uploadMsg;
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                i.setType("*/*");
-                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+
+            //For Android API < 11 (3.0 OS)
+            public void openFileChooser(ValueCallback<Uri> valueCallback) {
+                uploadMessage = valueCallback;
+                openImageChooserActivity();
             }
 
-            // For Android 3.0+
-            public void openFileChooser(ValueCallback uploadMsg, String acceptType) {
-                Log.i("UPFILE", "in openFile Uri Callback has accept Type" + acceptType);
-                if (mUploadMessage != null) {
-                    mUploadMessage.onReceiveValue(null);
-                }
-                mUploadMessage = uploadMsg;
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                String type = TextUtils.isEmpty(acceptType) ? "*/*" : acceptType;
-                i.setType(type);
-                startActivityForResult(Intent.createChooser(i, "File Chooser"),
-                        FILECHOOSER_RESULTCODE);
+            //For Android API >= 11 (3.0 OS)
+            public void openFileChooser(ValueCallback<Uri> valueCallback, String acceptType, String capture) {
+                uploadMessage = valueCallback;
+                openImageChooserActivity();
             }
 
-            // For Android 4.1
-            public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
-                Log.i("UPFILE", "in openFile Uri Callback has accept Type" + acceptType + "has capture" + capture);
-                if (mUploadMessage != null) {
-                    mUploadMessage.onReceiveValue(null);
-                }
-                mUploadMessage = uploadMsg;
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                String type = TextUtils.isEmpty(acceptType) ? "*/*" : acceptType;
-                i.setType(type);
-                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
-            }
-
-            //Android 5.0+
+            //For Android API >= 21 (5.0 OS)
             @Override
-            @SuppressLint("NewApi")
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                if (mUploadMessageForAndroid5 != null) {
-                    mUploadMessageForAndroid5.onReceiveValue(null);
-                }
-                Log.i("UPFILE", "file chooser params：" + fileChooserParams.toString());
-                mUploadMessageForAndroid5 = filePathCallback;
-                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                i.addCategory(Intent.CATEGORY_OPENABLE);
-                if (fileChooserParams != null && fileChooserParams.getAcceptTypes() != null
-                        && fileChooserParams.getAcceptTypes().length > 0) {
-                    i.setType(fileChooserParams.getAcceptTypes()[0]);
-                } else {
-                    i.setType("*/*");
-                }
-                startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+                uploadMessageAboveL = filePathCallback;
+                openImageChooserActivity();
                 return true;
             }
 
@@ -201,7 +161,12 @@ public class TuXiaoCaoActivityP extends Activity {
         }
 
     }
-
+    private void openImageChooserActivity() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("image/*");
+        startActivityForResult(Intent.createChooser(i, "Image Chooser"), FILE_CHOOSER_RESULT_CODE);
+    }
 
     @SuppressLint("ResourceType")
     @Override
@@ -233,33 +198,43 @@ public class TuXiaoCaoActivityP extends Activity {
         }
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILECHOOSER_RESULTCODE) {
-            if (null == mUploadMessage) return;
+        if (requestCode == FILE_CHOOSER_RESULT_CODE) {
+            if (null == uploadMessage && null == uploadMessageAboveL) return;
             Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
-            if (result == null) {
-                mUploadMessage.onReceiveValue(null);
-                mUploadMessage = null;
-                return;
+            if (uploadMessageAboveL != null) {
+                onActivityResultAboveL(requestCode, resultCode, data);
+            } else if (uploadMessage != null) {
+                uploadMessage.onReceiveValue(result);
+                uploadMessage = null;
             }
-            Log.i("UPFILE", "onActivityResult" + result.toString());
-            String path = TuXiaoCaoFileUtils.getPath(this, result);
-            if (TextUtils.isEmpty(path)) {
-                mUploadMessage.onReceiveValue(null);
-                mUploadMessage = null;
-                return;
-            }
-            Uri uri = Uri.fromFile(new File(path));
-            Log.i("UPFILE", "onActivityResult after parser uri:" + uri.toString());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                mUploadMessageForAndroid5.onReceiveValue(new Uri[]{uri});
-            } else {
-                mUploadMessage.onReceiveValue(uri);
-            }
-            mUploadMessage = null;
-            mUploadMessageForAndroid5 = null;
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void onActivityResultAboveL(int requestCode, int resultCode, Intent intent) {
+        if (requestCode != FILE_CHOOSER_RESULT_CODE || uploadMessageAboveL == null)
+            return;
+        Uri[] results = null;
+        if (resultCode == Activity.RESULT_OK) {
+            if (intent != null) {
+                String dataString = intent.getDataString();
+                ClipData clipData = intent.getClipData();
+                if (clipData != null) {
+                    results = new Uri[clipData.getItemCount()];
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        ClipData.Item item = clipData.getItemAt(i);
+                        results[i] = item.getUri();
+                    }
+                }
+                if (dataString != null)
+                    results = new Uri[]{Uri.parse(dataString)};
+            }
+        }
+        uploadMessageAboveL.onReceiveValue(results);
+        uploadMessageAboveL = null;
     }
 }
