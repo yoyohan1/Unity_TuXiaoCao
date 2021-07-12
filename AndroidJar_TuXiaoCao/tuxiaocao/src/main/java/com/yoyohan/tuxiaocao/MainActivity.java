@@ -1,8 +1,11 @@
 package com.yoyohan.tuxiaocao;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 
 import com.unity3d.player.UnityPlayer;
 
@@ -42,4 +45,38 @@ public class MainActivity extends Activity {
         intent.putExtra("url", url);
         activity.startActivity(intent);
     }
+
+
+    /**
+     * 获取本地软件版本号
+     */
+    public static String getLocalVersionCode() {
+        String localVersion = "未知";
+        try {
+            PackageInfo packageInfo = UnityPlayer.currentActivity.getApplicationContext()
+                    .getPackageManager()
+                    .getPackageInfo(UnityPlayer.currentActivity.getPackageName(), 0);
+            localVersion = packageInfo.versionCode + "";
+        } catch (PackageManager.NameNotFoundException e) {
+            localVersion = "未知";
+        }
+        return localVersion;
+    }
+
+    /**
+     * 获取本地软件版本号名称
+     */
+    public static String getLocalVersionName() {
+        String localVersion = "未知";
+        try {
+            PackageInfo packageInfo = UnityPlayer.currentActivity.getApplicationContext()
+                    .getPackageManager()
+                    .getPackageInfo(UnityPlayer.currentActivity.getPackageName(), 0);
+            localVersion = packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            localVersion = "未知";
+        }
+        return localVersion;
+    }
+
 }
