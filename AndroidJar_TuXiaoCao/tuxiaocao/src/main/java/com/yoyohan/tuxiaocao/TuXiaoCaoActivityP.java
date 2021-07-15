@@ -149,7 +149,7 @@ public class TuXiaoCaoActivityP extends Activity {
             String avatar = this.getIntent().getStringExtra("avatar");
             String openid = this.getIntent().getStringExtra("openid");
             String jixing = android.os.Build.BRAND + "  " + android.os.Build.MODEL;
-            String customInfo = "账号:" + phone + " 机型:" + jixing + " 手机版本:Android" + android.os.Build.VERSION.RELEASE + " app版本:" + MainActivity.getLocalVersionName() + "(" + MainActivity.getLocalVersionCode() + ")";
+            String customInfo = "账号:" + phone + " 机型:" + jixing + " 手机版本:Android" + android.os.Build.VERSION.RELEASE + " app版本:" + MainActivity.getVersionStr();
             String postData = "nickname=" + nickname + "&avatar=" + avatar + "&openid=" + openid + "&customInfo=" + customInfo;
 
             Log.i("Unity", "打开兔小巢页面 postData:" + postData);
@@ -161,6 +161,7 @@ public class TuXiaoCaoActivityP extends Activity {
         }
 
     }
+
     private void openImageChooserActivity() {
         Intent i = new Intent(Intent.ACTION_GET_CONTENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);

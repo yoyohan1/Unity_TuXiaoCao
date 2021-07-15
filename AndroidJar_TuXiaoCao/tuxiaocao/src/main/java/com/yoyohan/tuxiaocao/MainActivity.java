@@ -79,4 +79,8 @@ public class MainActivity extends Activity {
         return localVersion;
     }
 
+    public static String getVersionStr() {
+        return getLocalVersionName() + "(" + getLocalVersionCode() + ")";
+    }
+
 }
