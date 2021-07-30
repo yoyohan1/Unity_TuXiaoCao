@@ -16,6 +16,7 @@ namespace yoyohan.YouDaSdkTool
         #region 核心代码
         private AndroidJavaClass unityClass;
         private AndroidJavaObject currActivity;
+        private Dictionary<string, AndroidJavaObject> dicPackages = new Dictionary<string, AndroidJavaObject>();
 
         private YouDaSdkMgr()
         {
@@ -76,7 +77,16 @@ namespace yoyohan.YouDaSdkTool
 
             if (Application.platform != RuntimePlatform.Android) return;
 
-            AndroidJavaObject activity = new AndroidJavaObject(packageName);
+            AndroidJavaObject activity;
+            if (dicPackages.ContainsKey(packageName))
+            {
+                activity = dicPackages[packageName];
+            }
+            else
+            {
+                activity = new AndroidJavaObject(packageName);
+                dicPackages.Add(packageName, activity);
+            }
 
             if (isStaticMethod)
             {
@@ -98,7 +108,16 @@ namespace yoyohan.YouDaSdkTool
 
             if (Application.platform != RuntimePlatform.Android) return default(Tvalue);
 
-            AndroidJavaObject activity = new AndroidJavaObject(packageName);
+            AndroidJavaObject activity;
+            if (dicPackages.ContainsKey(packageName))
+            {
+                activity = dicPackages[packageName];
+            }
+            else
+            {
+                activity = new AndroidJavaObject(packageName);
+                dicPackages.Add(packageName, activity);
+            }
 
             if (isStaticMethod)
             {
@@ -172,60 +191,6 @@ namespace yoyohan.YouDaSdkTool
         #endregion
 
 
-        #region Umeng统计设置页面模式的代码
-        //GitHub地址： https://github.com/yoyohan1/AndroidJar_testmediastore
-
-        /// <summary>
-        /// 设置Umeng的页面采集方式 0AUTO 1MANUAL 2LEGACY_AUTO 3LEGACY_MANUAL 
-        /// Legacy_Manual模式不会自动采集页面  需要PageBegin和PageEnd成对采集  iOS同理
-        /// </summary>
-        /// <param name="id"></param>
-        public void setUmengPageMode(int id)
-        {
-            SendMessageToAndroidByPackage("com.yoyohan.umengutil.MainActivity", "setUmengPageMode", false, id);
-        }
-        #endregion
-
-
-        #region 刘海屏的代码
-        //GitHub地址： https://github.com/yoyohan1/UnityJar_GetNotchSize
-#if UNITY_IOS
-        [System.Runtime.InteropServices.DllImport("__Internal")]
-        public static extern bool getIsNotch_iOS();
-        [System.Runtime.InteropServices.DllImport("__Internal")]
-        public static extern float getNotchSize_iOS();
-#endif
-
-        public void getNotchSize()
-        {
-#if UNITY_EDITOR
-            OnGetNotchSize(100);
-#elif UNITY_ANDROID
-            SendMessageToAndroidByPackage("com.yoyohan.getnotchsize.MainActivity", "getNotchSize", false);
-#elif UNITY_IOS
-            OnGetNotchSize(getNotchSize_iOS());
-#else
-            OnGetNotchSize(0);
-#endif
-        }
-
-        public float notchSize;
-        public Action OnNotchSizeChangedAction;
-
-        //获取NotchSize成功
-        public void OnGetNotchSize(float size)
-        {
-            notchSize = size;
-            if (OnNotchSizeChangedAction != null)
-            {
-                Debug.Log("OnNotchSizeChangedAction触发！notchSize：" + notchSize);
-                OnNotchSizeChangedAction();
-            }
-        }
-
-        #endregion
-
-
         #region 获取设备存储空间
 #if UNITY_IOS
         [System.Runtime.InteropServices.DllImport("__Internal")]
@@ -289,24 +254,6 @@ namespace yoyohan.YouDaSdkTool
         #endregion
 
 
-        #region 获取苹果手机型号
-        //已更新到iPhone 12 返回结果为：iPhone 12 mini、iPhone 12 Pro Max
-        //代码在iOSUtil.mm
-#if UNITY_IOS
-        [System.Runtime.InteropServices.DllImport("__Internal")]
-        public static extern string getiPhoneType_iOS();
-#endif
-
-        public string getiPhoneType_iOS()
-        {
-#if UNITY_IOS
-            return getiPhoneType_iOS();
-#endif
-            return "";
-        }
-        #endregion
-
-
         #region 阿里云推送主动获取通知和消息的代码
         //#if UNITY_IOS
         //        [System.Runtime.InteropServices.DllImport("__Internal")]
@@ -350,81 +297,6 @@ namespace yoyohan.YouDaSdkTool
         #endregion
 
 
-        #region 打开兔小巢反馈
-#if UNITY_IOS
-        [System.Runtime.InteropServices.DllImport("__Internal")]
-        public static extern void openTuXiaoCao_iOS(string url, string phone, string nickname, string avatar, string openid, int orientationID);
-        [System.Runtime.InteropServices.DllImport("__Internal")]
-        public static extern void openWebView_iOS(string url, int orientationID);
-#endif
-
-        public void openTuXiaoCao(string url, string phone, string nickname, string avatar, string openid)
-        {
-            //示例代码
-            //string url = "https://support.qq.com/product/298495";
-            //string phone = "phone";
-            //string nickname = "nickname";
-            //if (nickname.Contains(phone))
-            //{
-            //    char[] returnStr = phone.ToCharArray();
-            //    for (int i = 0; i < phone.Length; i++)
-            //    {
-            //        if (i >= 3 && i <= 6)
-            //        {
-            //            returnStr[i] = '*';
-            //        }
-            //    }
-            //    nickname = nickname.Replace(phone, new string(returnStr));
-            //}
-            //string avatar = "https://c-ssl.duitang.com/uploads/blog/202012/04/20201204115704_641e3.png";
-            //string openid = "openid";
-
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                SendMessageToAndroidByPackage("com.yoyohan.tuxiaocao.MainActivity", "openTuXiaoCao", false, url, phone, nickname, avatar, openid);
-            }
-            else if (Application.platform == RuntimePlatform.IPhonePlayer)
-            {
-#if UNITY_IOS
-                openTuXiaoCao_iOS(url, phone, nickname, avatar, openid);
-#endif
-            }
-            else
-            {
-                Application.OpenURL(url);
-            }
-        }
-
-        public void openWebView(string url, int orientationID = -1)
-        {
-            if (orientationID == -1)
-            {
-                orientationID = (int)Screen.orientation;
-            }
-
-            List<int> orientationArr = new List<int>() { 1, 2, 3, 4 };
-            if (orientationArr.Contains(orientationID) == false)
-            {
-                orientationID = 1;
-            }
-
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                SendMessageToAndroidByPackage("com.yoyohan.tuxiaocao.MainActivity", "openWebView", false, url, orientationID);
-            }
-            else if (Application.platform == RuntimePlatform.IPhonePlayer)
-            {
-#if UNITY_IOS
-                openWebView_iOS(url, orientationID);
-#endif
-            }
-            else
-            {
-                this.openUrl(url);
-            }
-        }
-        #endregion
-
 
         /// <summary>
         /// 退出游戏
@@ -459,7 +331,14 @@ namespace yoyohan.YouDaSdkTool
             string[] pataStr = new string[para.Length];
             for (int i = 0; i < para.Length; i++)
             {
-                pataStr[i] = para[i].ToString();
+                if (para[i] == null)
+                {
+                    pataStr[i] = "null";
+                }
+                else
+                {
+                    pataStr[i] = para[i].ToString();
+                }
             }
 
             return pataStr;

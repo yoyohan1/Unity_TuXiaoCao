@@ -5,7 +5,8 @@
 // 如果使用 WKWebview 的话，需要导入 Webkit 的头文件
 #import "WebKit/WebKit.h"
 #import <sys/utsname.h>
-#import "iOSUtil.h"
+#import "TuXiaoCaoiOSUtil.h"
+#import "GetNotchSizeiOSUtil.h"
 
 @interface TuXiaoCaoViewController ()<WKNavigationDelegate>
 
@@ -90,11 +91,11 @@ Boolean canAutorotate=YES;
 
 -(void)viewDidAppear:(BOOL)animated{
     
-    BOOL isIPhoneNotchScreen=[iOSUtil getIsNotch];
-    NSLog(@"是否为刘海屏:%@ 刘海屏高度:%f 状态栏高度:%f",isIPhoneNotchScreen?@"YES":@"NO",[iOSUtil getNotchSize],[[UIApplication sharedApplication] statusBarFrame].size.height);
+    BOOL isIPhoneNotchScreen=[GetNotchSizeiOSUtil getIsNotch];
+    NSLog(@"是否为刘海屏:%@ 刘海屏高度:%f 状态栏高度:%f",isIPhoneNotchScreen?@"YES":@"NO",[GetNotchSizeiOSUtil getNotchSize],[[UIApplication sharedApplication] statusBarFrame].size.height);
     
     //如果是刘海屏使用getNotchsize 不是刘海屏使用状态栏高度
-    CGFloat startY=isIPhoneNotchScreen?[iOSUtil getNotchSize]:[[UIApplication sharedApplication] statusBarFrame].size.height;
+    CGFloat startY=isIPhoneNotchScreen?[GetNotchSizeiOSUtil getNotchSize]:[[UIApplication sharedApplication] statusBarFrame].size.height;
    
     
     self.nBarView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.view.frame.size.width,startY+36)];
@@ -131,7 +132,7 @@ Boolean canAutorotate=YES;
     
     
     //如果是刘海屏使用getNotchsize 不是刘海屏使用状态栏高度
-    CGFloat viewHeight=isIPhoneNotchScreen?[iOSUtil getNotchSize]+36:[[UIApplication sharedApplication] statusBarFrame].size.height+36;
+    CGFloat viewHeight=isIPhoneNotchScreen?[GetNotchSizeiOSUtil getNotchSize]+36:[[UIApplication sharedApplication] statusBarFrame].size.height+36;
     
     //创建WKWebView对象，设置大小为屏幕大小
     self.webview = [[WKWebView alloc] initWithFrame:CGRectMake(0, viewHeight, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height-viewHeight)];
@@ -156,7 +157,12 @@ Boolean canAutorotate=YES;
         [request setHTTPMethod:@"POST"];
         [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
         
-        NSString *customInfo=[NSString stringWithFormat:@"账号:%@ 机型:%@ 手机版本:iOS%@", self._phone,[iOSUtil getiPhoneType], [[UIDevice currentDevice] systemVersion]];
+        NSString *appCurVersion = [infoDictionary objectForKey:@"CFBundleShortVersionString"];// 当前应用软件版本  比如：1.0.1
+        NSString *appCurVersionNum = [infoDictionary objectForKey:@"CFBundleVersion"];// 当前应用版本号码   int类型
+
+        NSString *appVersion=[NSString stringWithFormat:@"%@(%@)",appCurVersion,appCurVersionNum];
+
+        NSString *customInfo=[NSString stringWithFormat:@"账号:%@ 机型:%@ 手机版本:iOS%@ app版本:%@", self._phone,[TuXiaoCaoiOSUtil getiPhoneType], [[UIDevice currentDevice] systemVersion],appVersion];
         NSString *body = [NSString stringWithFormat:@"nickname=%@&avatar=%@&openid=%@&customInfo=%@", self._nickname, self._avatar, self.open_id,customInfo];
         
         NSLog( @"%@", [NSString stringWithFormat:@"打开兔小巢页面 body:%@",body]);
